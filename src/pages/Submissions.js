@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, checkAdminStatus } from '../firebaseServices'; // Import checkAdminStatus
+import { auth } from '../firebaseServices'; // Removed checkAdminStatus import
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/Match-Maker-Logo.png';
-import Modal from '../components/Modal'; // Import Modal
+import Modal from '../components/Modal';
 
 const Submissions = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open state
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const navigate = useNavigate();
 
@@ -20,16 +20,10 @@ const Submissions = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Check if the user is an admin
-      const isAdmin = await checkAdminStatus(user.uid);
-
-      if (isAdmin) {
-        setWelcomeMessage('Welcome Back Admin!');
-        setIsModalOpen(true); // Open the modal
-        setTimeout(() => navigate('/admin-dashboard'), 3000); // Delay redirection to show the modal
-      } else {
-        throw new Error('Sorry, you are not an Admin.');
-      }
+      // Since we're not checking admin status, proceed to the dashboard
+      setWelcomeMessage('Welcome Back!');
+      setIsModalOpen(true);
+      setTimeout(() => navigate('/admin-dashboard'), 3000); // Update this route as needed
     } catch (err) {
       setError(err.message);
     }
@@ -88,7 +82,7 @@ const Submissions = () => {
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 3a7 7 0 00-7 7 7 7 0014 0 7 7 0 00-7-7zm0 12a5 5 0 110-10 5 5 0 010 10zm0-3a2 2 0 110-4 2 2 0 010 4z"
+                    d="M10 3a7 7 0 00-7 7 7 7 0014 0 7 7 00-7-7zm0 12a5 5 0 110-10 5 5 00-010 10zm0-3a2 2 0110-4 2 2 00-02z"
                     clipRule="evenodd"
                   />
                 </svg>

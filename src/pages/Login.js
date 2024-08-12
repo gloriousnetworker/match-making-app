@@ -1,15 +1,35 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, checkAdminStatus } from '../firebaseServices'; // Import checkAdminStatus
+import { auth } from '../firebaseServices'; 
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/Match-Maker-Logo.png';
-import Modal from '../components/Modal'; // Import Modal
+import Modal from '../components/Modal';
+
+// Error mapping function
+const getErrorMessage = (errorCode) => {
+  switch (errorCode) {
+    case "auth/invalid-email":
+      return "The email address is not valid.";
+    case "auth/user-disabled":
+      return "This user account has been disabled.";
+    case "auth/user-not-found":
+      return "No user found with this email.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again.";
+    case "auth/invalid-credential":
+      return "The provided credential is invalid. Thief";
+    case "auth/too-many-requests":
+      return "Too many login attempts. Please try again later.";
+    default:
+      return "An unknown error occurred. Please try again.";
+  }
+};
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open state
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const navigate = useNavigate();
 
@@ -19,21 +39,18 @@ const LoginForm = () => {
       // Sign in with Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Check if the user is an admin
-      const isAdmin = await checkAdminStatus(user.uid);
-
-      if (isAdmin) {
-        setWelcomeMessage('Welcome Back Admin!');
-        setIsModalOpen(true); // Open the modal
-        setTimeout(() => navigate('/admin-dashboard'), 3000); // Delay redirection to show the modal
-      } else {
-        throw new Error('Sorry, you are not an Admin.');
-      }
+  
+      // No need to check for admin status anymore
+      setWelcomeMessage('Welcome Back!');
+      setIsModalOpen(true); 
+      setTimeout(() => navigate('/admin-dashboard'), 3000); // Redirect to a general dashboard or home page
     } catch (err) {
-      setError(err.message);
+      // Use the getErrorMessage function to show a user-friendly error
+      const errorMessage = getErrorMessage(err.code);
+      setError(errorMessage);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-gray-50 pt-16">
@@ -108,7 +125,6 @@ const LoginForm = () => {
         </form>
       </div>
 
-      {/* Modal Component */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
