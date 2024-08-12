@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   return (
@@ -8,29 +9,29 @@ const AdminDashboard = () => {
         <h2 className="text-2xl font-bold mb-6">Admin Panel</h2>
         <ul className="space-y-4">
           <li>
-            <a href="#" className="text-white hover:text-gray-200 block">
+            <Link to="/dashboard-overview" className="text-white hover:text-gray-200 block">
               Dashboard Overview
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="text-white hover:text-gray-200 block">
+            <Link to="/user-management" className="text-white hover:text-gray-200 block">
               User Management
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="text-white hover:text-gray-200 block">
+            <Link to="/content-management" className="text-white hover:text-gray-200 block">
               Content Management
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="text-white hover:text-gray-200 block">
+            <Link to="/reports-analytics" className="text-white hover:text-gray-200 block">
               Reports & Analytics
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="text-white hover:text-gray-200 block">
+            <Link to="/settings" className="text-white hover:text-gray-200 block">
               Settings
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
