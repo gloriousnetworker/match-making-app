@@ -1,48 +1,61 @@
 import React from 'react';
-import upload from '../assets/uploadImg.png'; // Assuming you need this image
-import Footer from '../components/Footer'; // Assuming you have a footer component
+import upload from '../assets/uploadImg.png';
+import Footer from '../components/Footer';
 import { useForm } from 'react-hook-form';
-import { db } from '../firebaseServices'; // Import the initialized Firestore instance
+import { db, storage } from '../firebaseServices'; // Import Firestore and Storage services
 import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const HomePage = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting }, getValues } = useForm();
 
+  // Handle file upload to Firebase Storage
+  const handleFileUpload = async (file) => {
+    const storageRef = ref(storage, `uploads/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // Optional: Handle upload progress here
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log('Upload is ' + progress + '% done');
+        },
+        (error) => {
+          console.error('Upload failed', error);
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log('File available at', downloadURL);
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
+  // Handle form submission
   const onSubmit = async (data) => {
     try {
+      let imageUrl = '';
+      const file = getValues('file')[0]; // Get the file from the form input
+      if (file) {
+        imageUrl = await handleFileUpload(file);
+      }
+
       await addDoc(collection(db, 'users'), {
-        name: data.name,
-        displayName: data.displayName,
-        age: data.age,
-        email: data.email,
-        height: data.height,
-        religion: data.religion,
-        employmentStatus: data.employmentStatus,
-        techStack: data.techStack,
-        genotype: data.genotype,
-        gender: data.gender,
-        location: data.location,
-        datingStatus: data.datingStatus,
-        preferredGender: data.preferredGender,
-        preferredLocation: data.preferredLocation,
-        preferredReligion: data.preferredReligion,
-        preferredZodiacSign: data.preferredZodiacSign,
-        preferredPersonality: data.preferredPersonality,
-        preferredDatingStatus: data.preferredDatingStatus,
-        minAge: data.minAge,
-        maxAge: data.maxAge,
-        kids: data.kids,
-        lookingFor: data.lookingFor,
-        prefersKids: data.prefersKids,
-        lookingForInPartner: data.lookingForInPartner
+        ...data,
+        profileImage: imageUrl // Add the uploaded image URL here
       });
+
       alert('Form submitted successfully!');
     } catch (error) {
       console.error('Error adding document: ', error);
       alert('Failed to submit form.');
     }
   };
-  
 
   return (
     <div className="container mx-auto p-4">
@@ -60,14 +73,14 @@ const HomePage = () => {
       {/* Divider Line */}
       <hr className="mb-8 w-full" />
 
-      {/* Image Upload Box */}
-      <div className="flex justify-start mb-4 mt-4">
+        {/* Image Upload Box */}
+        <div className="flex justify-start mb-4 mt-4">
         <div className="rounded-lg p-8 text-center w-full lg:w-1/2">
           {/* Wrapping the image in a label to make it clickable */}
           <label htmlFor="file-upload" className="cursor-pointer">
             <img src={upload} alt="Upload" className="mx-auto mb-4" />
           </label>
-          <input type="file" className="hidden" id="file-upload" />
+          <input type="file" className="hidden" id="file-upload" {...register('file')} />
         </div>
       </div>
 
@@ -582,11 +595,11 @@ const HomePage = () => {
 
 
      {/* Submit Button */}
-     <div className="flex justify-center">
+     <div className="text-center mb-4">
           <button 
             type="submit" 
             disabled={isSubmitting} 
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-6 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600 disabled:opacity-50"
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
