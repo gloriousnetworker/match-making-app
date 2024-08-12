@@ -1,14 +1,47 @@
-import React from "react";
-import logo from '../assets/Match-Maker-Logo.png'; 
+import React, { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, checkAdminStatus } from '../firebaseServices'; // Import checkAdminStatus
+import { useNavigate } from 'react-router-dom';
+import logo from '../assets/Match-Maker-Logo.png';
+import Modal from '../components/Modal'; // Import Modal
 
 const Submissions = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open state
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Sign in with Firebase Authentication
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check if the user is an admin
+      const isAdmin = await checkAdminStatus(user.uid);
+
+      if (isAdmin) {
+        setWelcomeMessage('Welcome Back Admin!');
+        setIsModalOpen(true); // Open the modal
+        setTimeout(() => navigate('/admin-dashboard'), 3000); // Delay redirection to show the modal
+      } else {
+        throw new Error('Sorry, you are not an Admin.');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-gray-50 pt-16">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md relative">
         <div className="absolute inset-x-0 -top-10 flex justify-center">
           <div className="bg-white p-2 rounded-full shadow-md">
             <img
-              src={logo} // Replace with your logo URL
+              src={logo}
               alt="Logo"
               className="h-20 w-20 object-contain"
             />
@@ -17,7 +50,7 @@ const Submissions = () => {
         <h2 className="text-2xl font-bold text-center mt-12">Login</h2>
         <p className="text-center text-gray-600">(Admins Only)</p>
 
-        <form className="mt-6">
+        <form onSubmit={handleSubmit} className="mt-6">
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Email <span className="text-red-500">*</span>
@@ -25,7 +58,10 @@ const Submissions = () => {
             <input
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              required
             />
           </div>
 
@@ -37,7 +73,10 @@ const Submissions = () => {
               <input
                 type="password"
                 placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+                required
               />
               <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
                 <svg
@@ -65,8 +104,16 @@ const Submissions = () => {
               Login
             </button>
           </div>
+          {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
         </form>
       </div>
+
+      {/* Modal Component */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        message={welcomeMessage}
+      />
     </div>
   );
 };
