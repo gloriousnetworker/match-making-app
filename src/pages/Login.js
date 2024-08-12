@@ -17,7 +17,7 @@ const getErrorMessage = (errorCode) => {
     case "auth/wrong-password":
       return "Incorrect password. Please try again.";
     case "auth/invalid-credential":
-      return "The provided credential is invalid. Thief";
+      return "The provided credential is invalid.";
     case "auth/too-many-requests":
       return "Too many login attempts. Please try again later.";
     default:
@@ -37,13 +37,12 @@ const LoginForm = () => {
     e.preventDefault();
     try {
       // Sign in with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-  
-      // No need to check for admin status anymore
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // Since we're not checking admin status, proceed to the dashboard
       setWelcomeMessage('Welcome Back!');
-      setIsModalOpen(true); 
-      setTimeout(() => navigate('/admin-dashboard'), 3000); // Redirect to a general dashboard or home page
+      setIsModalOpen(true);
+      setTimeout(() => navigate('/admin-dashboard'), 3000); // Update this route as needed
     } catch (err) {
       // Use the getErrorMessage function to show a user-friendly error
       const errorMessage = getErrorMessage(err.code);

@@ -1,15 +1,35 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from '../firebaseServices'; // Removed checkAdminStatus import
+import { auth } from '../firebaseServices'; 
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/Match-Maker-Logo.png';
 import Modal from '../components/Modal';
+
+// Error mapping function
+const getErrorMessage = (errorCode) => {
+  switch (errorCode) {
+    case "auth/invalid-email":
+      return "The email address is not valid.";
+    case "auth/user-disabled":
+      return "This user account has been disabled.";
+    case "auth/user-not-found":
+      return "No user found with this email.";
+    case "auth/wrong-password":
+      return "Incorrect password. Please try again.";
+    case "auth/invalid-credential":
+      return "The provided credential is invalid. Thief!";
+    case "auth/too-many-requests":
+      return "Too many login attempts. Please try again later.";
+    default:
+      return "An unknown error occurred. Please try again.";
+  }
+};
 
 const Submissions = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const navigate = useNavigate();
 
@@ -17,15 +37,16 @@ const Submissions = () => {
     e.preventDefault();
     try {
       // Sign in with Firebase Authentication
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      await signInWithEmailAndPassword(auth, email, password);
 
       // Since we're not checking admin status, proceed to the dashboard
       setWelcomeMessage('Welcome Back!');
       setIsModalOpen(true);
       setTimeout(() => navigate('/admin-dashboard'), 3000); // Update this route as needed
     } catch (err) {
-      setError(err.message);
+      // Use the getErrorMessage function to show a user-friendly error
+      const errorMessage = getErrorMessage(err.code);
+      setError(errorMessage);
     }
   };
 
